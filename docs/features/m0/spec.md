@@ -16,19 +16,19 @@ tags: [ai-integration, learning]
 
 ## 行为与契约
 
-接口由 `ChatController` DTO 定义，领域约束由 `ChatRequest` / `Message` 定义。只接受逻辑别名 `assistant`；当前消息仅支持 user 角色。每次入口创建服务端 requestId，成功与受控错误同时返回 body 与 `X-Request-Id`。非法 JSON/参数返回 400，未知模型返回 404，上游失败返回 502。
+接口由 `ChatController` DTO 定义，领域约束由 `ChatRequest` / `Message` 定义。默认逻辑别名为 `assistant`，可通过[路由配置](../model-routing/spec.md)添加或替换为多个别名；当前消息仅支持 user 角色。每次入口创建服务端 requestId，成功与受控错误同时返回 body 与 `X-Request-Id`。非法 JSON/参数返回 400，未知模型返回 404，上游失败返回 502。
 
 M0 使用同步有限超时的单次调用，无自动重试。mock 明确声明 simulated；Ollama 显式关闭 streaming 并映射其 usage。未知/缺失 usage 保留 null，不能编造 token 或费用。
 
-启动配置决定 provider 与上游模型；无管理接口、热更新或外部路由控制。回环地址绑定只适用于本地学习，扩大到非本机前需要完成 M3 的认证与授权。
+启动配置决定 provider 与上游模型；提供只读 `/api/models` 目录，无配置写入接口、热更新或外部路由控制。[Admin Portal](../admin-portal/spec.md) 仅在浏览器中管理网关地址和测试 API，不改变服务端路由。回环地址绑定只适用于本地学习，扩大到非本机前需要完成 M3 的认证与授权。
 
 ## 故障与观测
 
-参数拒绝不得调用 provider。上游响应格式异常、超时、网络故障返回固定安全错误；模型回答与异常正文不得进入日志。`ObservationFilter` 记录 requestId、耗时与结果；Actuator 提供进程探针和聚合 HTTP 指标。readiness 不校验 Ollama 模型是否加载，因此不能推断真实模型健康。
+参数拒绝不得调用 provider。上游响应格式异常、超时、网络故障返回固定安全错误；模型回答与异常正文不得进入日志。`ObservationFilter` 记录 requestId、耗时与结果；Actuator 提供进程探针、聚合 HTTP 指标及[路由调用和 token 指标](../model-routing/spec.md)。readiness 不校验 Ollama 模型是否加载，因此不能推断真实模型健康。
 
 ## 发布与回滚
 
-本地从 mock 开始，手动切换 Ollama；失败时改回 mock 并重启。不存在数据迁移或线上发布。M0 上游使用可信本地进程；大响应上限、恶意上游及更严格的请求字节限制是 M2/M3 练习。
+本地从 mock 开始，手动切换 Ollama；失败时按[路由回滚规则](../model-routing/spec.md)移除显式列表并改回 mock 后重启。不存在数据迁移或线上发布。M0 上游使用可信本地进程；大响应上限、恶意上游及更严格的请求字节限制是 M2/M3 练习。
 
 ## Verification
 

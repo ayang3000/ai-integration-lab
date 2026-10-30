@@ -1,0 +1,9 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api project(':ai-core')
+    implementation 'org.springframework:spring-web'
+    implementation 'tools.jackson.core:jackson-databind'
+}

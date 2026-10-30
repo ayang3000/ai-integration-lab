@@ -11,18 +11,19 @@ tags: [ai-integration, learning]
 
 ## 系统定位
 
-用开发者知识助手串联模型网关、RAG 和工具执行。当前只实现网关的最小同步闭环。业务编排通过模型端口调用适配器，HTTP、厂商协议和框架留在边界。
+以 Java AI Gateway + 模型路由平台为工程主线，用 Archiver Incident Copilot 串联未来 RAG 和工具执行。当前实现同步网关、启动配置的精确别名路由及基础计量。业务编排通过模型端口调用适配器，HTTP、厂商协议和框架留在边界。
 
 ```mermaid
 flowchart LR
   C[本机客户端] --> L[ai-launcher HTTP 与装配]
   L --> P[ai-core 过滤器管道与模型端口]
-  P --> A[ai-providers 适配器]
+  P --> R[ai-core 不可变别名路由]
+  R --> A[ai-providers 适配器]
   A --> M[mock]
   A --> O[本地 Ollama]
 ```
 
-图示展示当前运行时边界；依赖方向与 Maven 模块见[模块清单](runtime-modules.md)。验证入口：`AiApplication` 的显式 Bean 装配和 `ChatHttpTest` / `ProviderFailureHttpTest`。
+图示展示当前运行时边界；依赖方向与 Gradle 模块见[模块清单](runtime-modules.md)。验证入口：`AiApplication` 的显式 Bean 装配和 `ChatHttpTest` / `ProviderFailureHttpTest`。
 
 ## 借鉴来源与迁移
 
@@ -30,10 +31,10 @@ flowchart LR
 
 | AGW / garm 思想 | 本项目选择 | 当前状态与验证 |
 |---|---|---|
-| garm 框架 / AGW 平台策略 / launcher 分离 | 无框架 core、厂商 adapter、显式装配 | 已实现；模块 POM 与 core 编译依赖检查 |
+| garm 框架 / AGW 平台策略 / launcher 分离 | 无框架 core、厂商 adapter、显式装配 | 已实现；模块 `build.gradle` 与 core 编译依赖检查 |
 | 端点 + 过滤器 + 处理器 | 不可变过滤器列表 + around 调用 + provider terminal | 已实现；`PipelineTest` 检查顺序、异常清理、短路 |
-| 统一身份、路由、错误、统计 | 服务端 requestId，固定别名路由，统一错误，计时和聚合 HTTP 指标 | 已实现；HTTP 测试；身份认证待实现 |
-| 配置驱动的动态路由 | M0 启动时装配，后续学习不可变配置快照和原子切换 | 待实现；Verification: Missing，M3 验收补齐 |
+| 统一身份、路由、错误、统计 | 服务端 requestId，多别名精确路由，统一错误，按路由计时/usage 和聚合 HTTP 指标 | 已实现；HTTP 测试；身份认证待实现 |
+| 配置驱动的动态路由 | 已支持启动时不可变路由表；热更新和原子切换留待 M3 | 启动路由见 `ModelRouterTest` / `RoutingHttpTest`；动态更新 Verification: Missing |
 | 重试、熔断、故障转移 | AI 调用有费用、输出与副作用；M0 不自动重试 | 适配器单次调用；`OllamaChatModelTest`；M3 增加故障实验 |
 | Netty 流式代理与背压 | M0 同步 MVC；M2 用 SSE / Reactor 学取消、背压和长连接 | 待实现；Verification: Missing，M2 验收补齐 |
 | 失败也能清理资源 | around `try/finally` 只对已进入的过滤器退栈 | 已实现；`PipelineTest` |

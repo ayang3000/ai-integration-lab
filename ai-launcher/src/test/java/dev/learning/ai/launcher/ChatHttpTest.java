@@ -55,4 +55,22 @@ class ChatHttpTest {
         }
     }
 
+    @Test void adminPortalAndAssetsAreServedAlongsideApi() throws Exception {
+        for (String path : new String[]{"/", "/admin/styles.css", "/admin/app.mjs", "/admin/core.mjs"}) {
+            var response = client.send(HttpRequest.newBuilder(
+                    URI.create("http://127.0.0.1:" + port + path)).GET().build(), HttpResponse.BodyHandlers.ofString());
+            assertEquals(200, response.statusCode(), path);
+            String type = response.headers().firstValue("Content-Type").orElseThrow();
+            if (path.equals("/")) {
+                assertTrue(type.contains("text/html"));
+                assertTrue(response.body().contains("Admin Portal"));
+            } else if (path.endsWith(".mjs")) {
+                assertTrue(type.contains("javascript"), type);
+            } else {
+                assertTrue(type.contains("text/css"), type);
+            }
+            assertFalse(response.headers().firstValue("X-Request-Id").orElseThrow().isBlank());
+        }
+    }
+
 }

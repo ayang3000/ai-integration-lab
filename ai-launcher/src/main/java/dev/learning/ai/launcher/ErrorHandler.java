@@ -1,6 +1,7 @@
 package dev.learning.ai.launcher;
 
 import dev.learning.ai.core.ProviderException;
+import dev.learning.ai.core.UnknownModelException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -16,7 +17,7 @@ final class ErrorHandler {
     ResponseEntity<ErrorBody> invalid(Exception ignored, HttpServletRequest request) {
         return error(400, "INVALID_REQUEST", "Invalid chat request", request);
     }
-    @ExceptionHandler(ChatController.UnknownModelException.class)
+    @ExceptionHandler(UnknownModelException.class)
     ResponseEntity<ErrorBody> unknown(HttpServletRequest request) {
         return error(404, "UNKNOWN_MODEL", "Unknown model alias", request);
     }

@@ -1,0 +1,21 @@
+# Copy this file to application.properties in the project root.
+# Defaults can be edited after the colon; environment variables override them.
+# The named model must already be installed in Ollama.
+ai.provider=${AI_PROVIDER:ollama}
+ai.ollama.base-url=${OLLAMA_BASE_URL:http://127.0.0.1:11434}
+ai.ollama.model=${OLLAMA_MODEL:qwen2.5:7b}
+ai.ollama.timeout-seconds=${OLLAMA_TIMEOUT_SECONDS:120}
+
+# Optional exact-alias routing. Uncomment the whole list to replace the legacy
+# assistant -> ai.provider mapping. Keep list entries in one property source.
+# Model names below must exist in your own Ollama installation.
+# ai.routing.routes[0].alias=assistant
+# ai.routing.routes[0].provider=ollama
+# ai.routing.routes[0].model=qwen2.5:7b
+# ai.routing.routes[1].alias=offline
+# ai.routing.routes[1].provider=mock
+# ai.routing.routes[2].alias=incident
+# ai.routing.routes[2].provider=ollama
+# ai.routing.routes[2].model=your-installed-model
+# ai.routing.routes[2].base-url=http://127.0.0.1:11434
+# ai.routing.routes[2].timeout-seconds=120

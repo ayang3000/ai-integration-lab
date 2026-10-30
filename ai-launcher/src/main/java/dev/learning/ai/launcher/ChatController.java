@@ -16,7 +16,6 @@ final class ChatController {
     ChatResponse chat(@Valid @RequestBody ChatInput input, HttpServletRequest http) {
         ChatRequest request = new ChatRequest(input.model(), input.messages().stream()
                 .map(m -> new Message(m.role(), m.content())).toList());
-        if (!"assistant".equals(request.model())) throw new UnknownModelException();
         String id = (String) http.getAttribute(RequestIdFilter.ATTRIBUTE);
         ChatResult result = pipeline.execute(new RequestContext(id, request));
         return new ChatResponse(id, request.model(), result.provider(), result.model(),
@@ -28,5 +27,4 @@ final class ChatController {
     record InputMessage(@NotBlank String role, @NotBlank @Size(max=16000) String content) {}
     record ChatResponse(String requestId, String model, String provider, String upstreamModel,
                         String content, ChatResult.Usage usage, boolean simulated) {}
-    static final class UnknownModelException extends RuntimeException {}
 }

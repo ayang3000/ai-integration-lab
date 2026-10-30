@@ -1,0 +1,3 @@
+rootProject.name = 'ai-integration-lab'
+
+include 'ai-core', 'ai-providers', 'ai-launcher'
